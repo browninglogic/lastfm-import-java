@@ -16,12 +16,19 @@ import java.awt.event.ActionEvent;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 
 import java.awt.FlowLayout;
 import javax.swing.SwingConstants;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
+
+import de.umass.util.StringUtilities;
+import main.LastExportScrobbler;
+import main.Main;
 
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -44,21 +51,6 @@ public class LastFMImportGUI {
 	private JButton btnStart;
 	private JScrollPane scrollPane;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					LastFMImportGUI window = new LastFMImportGUI();
-					window.frmLastfmImport.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the application.
@@ -73,7 +65,7 @@ public class LastFMImportGUI {
 	private void initialize() {
 		frmLastfmImport = new JFrame();
 		frmLastfmImport.setTitle("Last.FM Import");
-		frmLastfmImport.setBounds(100, 100, 706, 581);
+		frmLastfmImport.setBounds(100, 100, 1000, 581);
 		frmLastfmImport.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{145, 354, 0};
@@ -86,6 +78,7 @@ public class LastFMImportGUI {
 		btnSelectFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
+				//If the user successfully selected a file, then set the reference
 				if(fileChooser.showOpenDialog(frmLastfmImport) == JFileChooser.APPROVE_OPTION)
 				{
 					fSelectedFile = fileChooser.getSelectedFile();
@@ -170,42 +163,6 @@ public class LastFMImportGUI {
 		frmLastfmImport.getContentPane().add(lblOutput, gbc_lblOutput);
 		
 		
-		
-		btnStart = new JButton("Start");
-		btnStart.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					if(getSelectedFile() != null)
-					{
-						appendLine(getSelectedFile().getAbsolutePath());
-					}
-					
-					appendLine(getUsername());
-					appendLine(getPassword());
-					
-					for(int i = 1; i <= 500; i++)
-					{
-						appendLine(Integer.toString(i));
-					}
-					
-					appendLine("Sleeping...");
-					
-					Thread.sleep(5000);
-					
-					for(int i = 500; i <= 1000; i++)
-					{
-						appendLine(Integer.toString(i));
-					}
-				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-		});
-		
 		scrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
@@ -221,7 +178,26 @@ public class LastFMImportGUI {
 		gbc_btnStart.gridwidth = 2;
 		gbc_btnStart.gridx = 0;
 		gbc_btnStart.gridy = 5;
+		
+		
+		btnStart = new JButton("Start");
+		btnStart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//If the user provided valid input, then start the main scrobbler thread
+				if(validateInput())
+				{
+					LastExportScrobbler scrobbler = new LastExportScrobbler(Main.getMainGUI(), fSelectedFile, getUsername(), getPassword());
+					Thread scrobbleThread = new Thread(scrobbler);
+					scrobbleThread.start();
+				}
+			}
+		});
+		
 		frmLastfmImport.getContentPane().add(btnStart, gbc_btnStart);
+		
+		//Set the text panel to automatically scroll as text is appended
+		DefaultCaret caret = (DefaultCaret)txtpnOutput.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 	}
 	
 	public File getSelectedFile()
@@ -239,10 +215,41 @@ public class LastFMImportGUI {
 		return txtLastfmPassword.getText();
 	}
 	
+	//Append a line to the end of the text pane and scroll accordingly
 	public void appendLine(String appendText) throws BadLocationException
 	{
 		Document doc = txtpnOutput.getStyledDocument();
+		JScrollBar vertical = scrollPane.getVerticalScrollBar();
+		
+		//Append the provided string to the end of the text pane
 		doc.insertString(doc.getLength(), String.format("%s\r\n", appendText), null);
+	}
+	
+	private boolean validateInput()
+	{
+		//TODO Validate the file itself
+		
+		if(fSelectedFile == null){
+			JOptionPane.showMessageDialog(frmLastfmImport, "You must select a file.");
+			return false;
+		}
+		
+		if(this.getUsername().isEmpty()){
+			JOptionPane.showMessageDialog(frmLastfmImport, "You must enter a username.");
+			return false;
+		}
+		
+		if(this.getPassword().isEmpty()){
+			JOptionPane.showMessageDialog(frmLastfmImport, "You must enter a password.");
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public void setVisible(boolean visible)
+	{
+		frmLastfmImport.setVisible(true);
 	}
 
 }
