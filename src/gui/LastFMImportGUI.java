@@ -27,7 +27,7 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
 
 import de.umass.util.StringUtilities;
-import main.LastExportScrobbler;
+import main.ScrobblerThread;
 import main.Main;
 
 import java.awt.GridBagLayout;
@@ -186,7 +186,7 @@ public class LastFMImportGUI {
 				//If the user provided valid input, then start the main scrobbler thread
 				if(validateInput())
 				{
-					LastExportScrobbler scrobbler = new LastExportScrobbler(Main.getMainGUI(), fSelectedFile, getUsername(), getPassword());
+					ScrobblerThread scrobbler = new ScrobblerThread(Main.getMainGUI(), fSelectedFile, getUsername(), getPassword());
 					Thread scrobbleThread = new Thread(scrobbler);
 					scrobbleThread.start();
 				}
