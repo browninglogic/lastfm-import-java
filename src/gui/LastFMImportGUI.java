@@ -36,13 +36,13 @@ import java.awt.Insets;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JTextPane;
+import javax.swing.JPasswordField;
 
 public class LastFMImportGUI {
 
 	private JFrame frmLastfmImport;
 	private File fSelectedFile;
 	private JTextField txtLastfmUsername;
-	private JTextField txtLastfmPassword;
 	private JTextField txtSelectFile;
 	private JLabel lblSendScrobbles;
 	private JCheckBox chckbxSendscrobbles;
@@ -50,6 +50,7 @@ public class LastFMImportGUI {
 	private JLabel lblOutput;
 	private JButton btnStart;
 	private JScrollPane scrollPane;
+	private JPasswordField pfLastfmPassword;
 
 
 	/**
@@ -123,19 +124,18 @@ public class LastFMImportGUI {
 		JLabel lblLastfmPassword = new JLabel("Last.FM Password");
 		GridBagConstraints gbc_lblLastfmPassword = new GridBagConstraints();
 		gbc_lblLastfmPassword.insets = new Insets(0, 0, 5, 5);
-		gbc_lblLastfmPassword.anchor = GridBagConstraints.WEST;
+		gbc_lblLastfmPassword.anchor = GridBagConstraints.EAST;
 		gbc_lblLastfmPassword.gridx = 0;
 		gbc_lblLastfmPassword.gridy = 2;
 		frmLastfmImport.getContentPane().add(lblLastfmPassword, gbc_lblLastfmPassword);
 		
-		txtLastfmPassword = new JTextField();
-		GridBagConstraints gbc_txtLastfmPassword = new GridBagConstraints();
-		gbc_txtLastfmPassword.insets = new Insets(0, 0, 5, 0);
-		gbc_txtLastfmPassword.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtLastfmPassword.gridx = 1;
-		gbc_txtLastfmPassword.gridy = 2;
-		frmLastfmImport.getContentPane().add(txtLastfmPassword, gbc_txtLastfmPassword);
-		txtLastfmPassword.setColumns(10);
+		pfLastfmPassword = new JPasswordField();
+		GridBagConstraints gbc_pfLastfmPassword = new GridBagConstraints();
+		gbc_pfLastfmPassword.insets = new Insets(0, 0, 5, 0);
+		gbc_pfLastfmPassword.fill = GridBagConstraints.HORIZONTAL;
+		gbc_pfLastfmPassword.gridx = 1;
+		gbc_pfLastfmPassword.gridy = 2;
+		frmLastfmImport.getContentPane().add(pfLastfmPassword, gbc_pfLastfmPassword);
 		
 		lblSendScrobbles = new JLabel("Send Scrobbles");
 		lblSendScrobbles.setToolTipText("Tells whether to actually scrobble to Last.FM while reading the file.  It's wise to go through the file once first with this off in order to ensure that everything looks good.");
@@ -186,7 +186,7 @@ public class LastFMImportGUI {
 				//If the user provided valid input, then start the main scrobbler thread
 				if(validateInput())
 				{
-					ScrobblerThread scrobbler = new ScrobblerThread(Main.getMainGUI(), fSelectedFile, getUsername(), getPassword());
+					ScrobblerThread scrobbler = new ScrobblerThread(Main.getMainGUI(), fSelectedFile, getUsername(), getPassword(), getSendScrobbles());
 					Thread scrobbleThread = new Thread(scrobbler);
 					scrobbleThread.start();
 				}
@@ -200,19 +200,24 @@ public class LastFMImportGUI {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 	}
 	
-	public File getSelectedFile()
+	private File getSelectedFile()
 	{
 		return fSelectedFile;
 	}
 	
-	public String getUsername()
+	private String getUsername()
 	{
 		return txtLastfmUsername.getText();
 	}
 	
-	public String getPassword()
+	private String getPassword()
 	{
-		return txtLastfmPassword.getText();
+		return new String(pfLastfmPassword.getPassword());
+	}
+	
+	private boolean getSendScrobbles()
+	{
+		return chckbxSendscrobbles.isSelected();
 	}
 	
 	//Append a line to the end of the text pane and scroll accordingly
@@ -234,13 +239,13 @@ public class LastFMImportGUI {
 			return false;
 		}
 		
-		if(this.getUsername().isEmpty()){
-			JOptionPane.showMessageDialog(frmLastfmImport, "You must enter a username.");
+		if(this.getSendScrobbles() && this.getUsername().isEmpty()){
+			JOptionPane.showMessageDialog(frmLastfmImport, "When specifying to send scrobbles, you must enter a username.");
 			return false;
 		}
 		
-		if(this.getPassword().isEmpty()){
-			JOptionPane.showMessageDialog(frmLastfmImport, "You must enter a password.");
+		if(this.getSendScrobbles() && this.getPassword().isEmpty()){
+			JOptionPane.showMessageDialog(frmLastfmImport, "When specifying to send scrobbles, you must enter a password.");
 			return false;
 		}
 		

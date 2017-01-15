@@ -45,9 +45,9 @@ public class PlayCollection {
 		
 		for (Play loopPlay : plays)
 		{
-			if(!loopPlay.hasBeenScrobbled())
+			if(!loopPlay.getScrobbled())
 			{
-				writer.println(loopPlay.getFileLine());
+				writer.println(loopPlay.createFileLine());
 			}
 		}
 		
