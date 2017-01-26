@@ -52,12 +52,12 @@ public class ScrobbleClient {
 		String album = pPlay.getAlbum();
 		String musicBrainzID = pPlay.getTrackMusicBrainzID();
 		
-		if(album.isEmpty())
+		if(!album.isEmpty())
 		{
 			sd.setAlbum(album);
 		}
 		
-		if(musicBrainzID.isEmpty())
+		if(!musicBrainzID.isEmpty())
 		{
 			sd.setMusicBrainzId(musicBrainzID);
 		}
